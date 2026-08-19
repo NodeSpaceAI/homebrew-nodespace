@@ -2,7 +2,24 @@
 
 Homebrew tap for [NodeSpace](https://nodespace.app) — AI-native local-first knowledge management.
 
-## Install
+Two install paths, for two different things:
+
+|  | `nodespace` (cask) | `nodespace-cli` (formula) |
+|---|---|---|
+| Installs | The full GUI app (`NodeSpace.app`) | Headless `nodespace` CLI + `nodespaced` daemon only |
+| Use when | You want the desktop app | You want a scriptable/server/CI install with no GUI |
+
+Both can be installed at once, but they claim the same `nodespace` binary
+name on PATH — whichever installs second gets its `bin/nodespace` link
+skipped with a warning rather than silently overwritten (`brew link
+--overwrite` resolves it either way). `brew services start nodespace-cli`
+and running `nodespaced` directly both work regardless of link state. See
+`Formula/nodespace-cli.rb`'s comments for the full detail — this was
+verified directly, not assumed: neither `conflicts_with cask:` on a
+formula nor `conflicts_with formula:` on a cask actually works in current
+Homebrew for this cross-type case.
+
+## Install the GUI app
 
 ```bash
 brew tap nodespaceai/nodespace
@@ -24,6 +41,25 @@ brew uninstall --cask nodespace
 # Remove app and all NodeSpace data
 brew uninstall --zap --cask nodespace
 ```
+
+## Install the headless CLI
+
+```bash
+brew install nodespaceai/nodespace/nodespace-cli
+```
+
+Installs both `nodespace` (the CLI) and `nodespaced` (the daemon it talks
+to over a Unix socket — `nodespace` commands fail until it's running).
+Start it directly (`nodespaced &`) or as a managed background service:
+
+```bash
+brew services start nodespace-cli
+```
+
+Upgrade/uninstall follow the usual formula commands (`brew upgrade
+nodespace-cli`, `brew uninstall nodespace-cli`). macOS Intel isn't built
+yet for this formula — see the `on_intel` note in
+`Formula/nodespace-cli.rb`.
 
 ## Official cask
 
