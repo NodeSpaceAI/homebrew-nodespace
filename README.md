@@ -9,8 +9,15 @@ Two install paths, for two different things:
 | Installs | The full GUI app (`NodeSpace.app`) | Headless `nodespace` CLI + `nodespaced` daemon only |
 | Use when | You want the desktop app | You want a scriptable/server/CI install with no GUI |
 
-The two can coexist on the same machine — see the Detection section of
-[NodeSpaceAI/nodespace-core#2146](https://github.com/NodeSpaceAI/nodespace-core/issues/2146).
+Both can be installed at once, but they claim the same `nodespace` binary
+name on PATH — whichever installs second gets its `bin/nodespace` link
+skipped with a warning rather than silently overwritten (`brew link
+--overwrite` resolves it either way). `brew services start nodespace-cli`
+and running `nodespaced` directly both work regardless of link state. See
+`Formula/nodespace-cli.rb`'s comments for the full detail — this was
+verified directly, not assumed: neither `conflicts_with cask:` on a
+formula nor `conflicts_with formula:` on a cask actually works in current
+Homebrew for this cross-type case.
 
 ## Install the GUI app
 
