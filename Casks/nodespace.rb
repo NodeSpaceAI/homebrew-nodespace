@@ -1,6 +1,6 @@
 cask "nodespace" do
-  version "0.2.3"
-  sha256 "526c69bf820fbeb1872cbffc8222bbb5e8dbf9f1dfc196fba30a690ec964283d"
+  version "0.2.4"
+  sha256 "37e597e1a5276106006840a1e3839abfebc12c7ec68a76e4038ab6ea96d886bf"
 
   # Apple Silicon (arm64) is the only supported macOS target. This is an
   # intentional decision, not a leftover workaround: there is no way to
