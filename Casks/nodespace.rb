@@ -1,6 +1,6 @@
 cask "nodespace" do
-  version "0.2.7"
-  sha256 "54fcdafdb517619d45623bc3635cdef9460d8d43cdbfd50f93435aac0ebc4d70"
+  version "0.2.8"
+  sha256 "4f3a414e42ed5db94fa225c5b04742ddba75e400cf3408b9cf3b0be679d0f4d7"
 
   # Apple Silicon (arm64) is the only supported macOS target. This is an
   # intentional decision, not a leftover workaround: there is no way to
@@ -31,9 +31,15 @@ cask "nodespace" do
   app "NodeSpace.app"
   binary "#{appdir}/NodeSpace.app/Contents/MacOS/nodespace"
 
+  # `~/.nodespace/models` is deliberately NOT listed here -- it can hold
+  # 100GB+ of downloaded model weights, and trashing that on every zap
+  # would be a hostile surprise for a directory the user may reasonably
+  # expect to survive an uninstall/reinstall cycle.
   zap trash: [
     "~/.nodespace/bin",
     "~/.nodespace/logs",
+    "~/.nodespace/database",
     "~/Library/LaunchAgents/app.nodespace.daemon.plist",
+    "~/Library/LaunchAgents/app.nodespace.daemon.dev.plist",
   ]
 end
