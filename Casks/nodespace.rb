@@ -1,6 +1,6 @@
 cask "nodespace" do
-  version "0.2.8"
-  sha256 "4f3a414e42ed5db94fa225c5b04742ddba75e400cf3408b9cf3b0be679d0f4d7"
+  version "0.2.9"
+  sha256 "2a1b29e7dee6a8f9a173ffcd7bb43e5b217e7c08812c212697b6cf233cb7187c"
 
   # Apple Silicon (arm64) is the only supported macOS target. This is an
   # intentional decision, not a leftover workaround: there is no way to
@@ -16,7 +16,7 @@ cask "nodespace" do
   # Explicit github_latest strategy: without this, brew's default livecheck
   # falls back to scanning ALL repo tags, which picks up unrelated
   # `review-*` tooling tags (e.g. review-20260813-095222) instead of the
-  # actual latest published release -- see NodeSpaceAI/nodespace-core#2114.
+  # actual latest published release.
   livecheck do
     url :url
     strategy :github_latest
