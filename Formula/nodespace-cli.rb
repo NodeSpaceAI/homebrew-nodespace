@@ -7,7 +7,7 @@ class NodespaceCli < Formula
   # scripts/update-homebrew-cask.ts documents for the sibling cask.
   # `brew audit --strict` flags this as "redundant with version scanned
   # from URL"; that's a known, accepted trade-off, not an oversight.
-  version "0.3.0"
+  version "0.3.1"
   # nodespace-core's actual LICENSE file is FSL-1.1-Apache-2.0 (Functional
   # Source License), which has no SPDX identifier -- `license
   # :cannot_represent` is Homebrew's documented escape hatch for exactly
@@ -44,17 +44,17 @@ class NodespaceCli < Formula
   # Ships prebuilt binaries from nodespace-core's GitHub Releases, same as
   # the cask -- there's no source build here, just like the cask's .dmg.
   #
-  # v0.3.0 has no macOS Intel build (see the on_intel odie below). NOTE:
+  # v0.3.1 has no macOS Intel build (see the on_intel odie below). NOTE:
   # the release's own SHA256SUMS file lists checksums for
   # nodespace-x86_64-apple-darwin / nodespaced-x86_64-apple-darwin even
   # though neither is an actual uploaded release asset -- verified against
-  # `gh release view v0.3.0 --json assets`, not just SHA256SUMS. Every
+  # `gh release view v0.3.1 --json assets`, not just SHA256SUMS. Every
   # digest below was computed locally from bytes actually downloaded from
   # the release, never copied from SHA256SUMS.
   on_macos do
     on_arm do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-aarch64-apple-darwin"
-      sha256 "caa21e403a94231f56b5fc4789f8404189433fc70aca2400ac10279d47adcb17"
+      sha256 "8b713df1fe8316caadb4315372f15ae3440542e2987282dd2d87e06c47c0d6c0"
     end
     on_intel do
       odie "nodespace-cli has no macOS Intel build in v#{release_version}. " \
@@ -66,11 +66,11 @@ class NodespaceCli < Formula
   on_linux do
     on_arm do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-aarch64-unknown-linux-gnu"
-      sha256 "d86db2dbc223cc079a74c9d8bb71a9dfa8e9d03ea17059fb9760d4b8a0005e7b"
+      sha256 "e7d623d8a95a865e0144be09c4cd73052bbdeab1ee024bfc2d0aba8c835e804e"
     end
     on_intel do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-x86_64-unknown-linux-gnu"
-      sha256 "5fc09c8065e8892d6a4e50d449430083ce1909d943b016b884dfaf20e0c81ffd"
+      sha256 "00d73628036d3b97f26ab2dbd3316911fe3d432f0784a26bf209bbdc6a943239"
     end
   end
 
@@ -106,17 +106,17 @@ class NodespaceCli < Formula
     on_macos do
       on_arm do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-aarch64-apple-darwin"
-        sha256 "a6b0635549cfc39f0d95b2dbeb2ee926ab456a8eb0465a62c67a5b4cd83e0fda"
+        sha256 "eed3b936a06269edf616fa1dd711c8b3023de4f144e34f3186edf0a3b1e769c8"
       end
     end
     on_linux do
       on_arm do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-aarch64-unknown-linux-gnu"
-        sha256 "a8910fc33061a269d2d36aa48c1fcbeb8a5eb383aca6c8e28300e794025dff6e"
+        sha256 "b569f5130a1e7d5ef911349e8f9fb7d7167ccb4bccc33e2303b4ce4aa98f9da3"
       end
       on_intel do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-x86_64-unknown-linux-gnu"
-        sha256 "c251cd2279a3d20e668623e1125e97da63b43275076d2234e9b22e5c30454196"
+        sha256 "1e30711dd542492db0640522afbd9426527a3b5a385e707a8c571ca473e7d484"
       end
     end
   end
@@ -159,6 +159,25 @@ class NodespaceCli < Formula
     # still works normally -- it unloads the service definition rather
     # than fighting KeepAlive.
     keep_alive true
+    # Without this, `nodespaced` defaults to its GUI-app tray mode (a
+    # `tao`/`NSApplication` event loop taking over the process's main
+    # thread) -- the right default for the cask's bundled daemon, but never
+    # for this formula, which ships no GUI at all. Verified directly on a
+    # real daemon: with the env var unset, `kill -TERM`/`SIGINT` is never
+    # observed by the process at all (a live thread sample shows every
+    # worker thread and the run loop fully parked, 0% CPU, forever) and it
+    # requires `SIGKILL`; with `NODESPACED_HEADLESS=1` set, the identical
+    # signal is handled and the process exits cleanly in well under a
+    # second. `brew services start/stop nodespace-cli` relies on a clean
+    # exit here -- `stop` sends SIGTERM and waits.
+    #
+    # Verified this way on macOS only. `environment_variables` is Homebrew's
+    # own cross-platform Services DSL primitive -- the same declaration is
+    # documented to translate into both the generated launchd plist (macOS)
+    # and the generated systemd unit (Linux) -- but that Linux translation
+    # was not independently re-verified against a live `brew services start`
+    # on this formula's Linux targets.
+    environment_variables NODESPACED_HEADLESS: "1"
     log_path var/"log/nodespace/nodespaced.log"
     error_log_path var/"log/nodespace/nodespaced.log"
   end
@@ -166,7 +185,7 @@ class NodespaceCli < Formula
   def caveats
     <<~EOS
       nodespaced (the daemon) must be running before `nodespace` commands work:
-        nodespaced &            # run directly, or
+        NODESPACED_HEADLESS=1 nodespaced &   # run directly, or
         brew services start nodespace-cli   # run as a background service
 
       This is the headless CLI only -- no GUI, no Applications entry. For
