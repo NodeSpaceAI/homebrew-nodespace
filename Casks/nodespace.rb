@@ -1,6 +1,6 @@
 cask "nodespace" do
-  version "0.3.1"
-  sha256 "79e92562b5df108e61a1f484126cc1818c992be69c8413f569e2fd5ac7402d35"
+  version "0.3.2"
+  sha256 "1e141ca84bbdb9c02ff6e070ea81fde56f53bcc32edf481343313195c3b68ef2"
 
   # Apple Silicon (arm64) is the only supported macOS target. This is an
   # intentional decision, not a leftover workaround: there is no way to
@@ -23,7 +23,7 @@ cask "nodespace" do
   end
 
   # release.yml builds with MACOSX_DEPLOYMENT_TARGET=14.0 (Metal GPU
-  # embeddings require Sonoma+ -- see #990).
+  # embeddings require Sonoma+).
   depends_on macos: :sonoma
   # arm64-only by design -- see the platform-support note above the `url` line.
   depends_on arch:  :arm64
