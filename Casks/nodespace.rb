@@ -1,6 +1,6 @@
 cask "nodespace" do
-  version "0.3.2"
-  sha256 "1e141ca84bbdb9c02ff6e070ea81fde56f53bcc32edf481343313195c3b68ef2"
+  version "0.3.4"
+  sha256 "de713bcf29c0010391f26a62d5b8200d469ef83a499e595af85f7940827d8ba4"
 
   # Apple Silicon (arm64) is the only supported macOS target. This is an
   # intentional decision, not a leftover workaround: there is no way to
@@ -22,24 +22,60 @@ cask "nodespace" do
     strategy :github_latest
   end
 
+  # arm64-only by design -- see the platform-support note above the `url` line.
+  depends_on arch:  :arm64
   # release.yml builds with MACOSX_DEPLOYMENT_TARGET=14.0 (Metal GPU
   # embeddings require Sonoma+).
   depends_on macos: :sonoma
-  # arm64-only by design -- see the platform-support note above the `url` line.
-  depends_on arch:  :arm64
 
   app "NodeSpace.app"
   binary "#{appdir}/NodeSpace.app/Contents/MacOS/nodespace"
 
-  # `~/.nodespace/models` is deliberately NOT listed here -- it can hold
-  # 100GB+ of downloaded model weights, and trashing that on every zap
-  # would be a hostile surprise for a directory the user may reasonably
-  # expect to survive an uninstall/reinstall cycle.
+  # Refuses to install over another NodeSpace product, reading only static
+  # data from the app already in place.
+  preflight_steps do
+    if_path_exists "NodeSpace.app", base: :appdir do
+      run "/bin/sh", args: ["-c", <<~SH, "sh", "{{appdir}}/NodeSpace.app"], print_stderr: false
+        product=$(/usr/bin/plutil -extract NodeSpaceProduct raw -o - "$1/Contents/Info.plist" 2>/dev/null)
+        if [ "$product" != community ]; then
+          msg="The NodeSpace app on this Mac is a different NodeSpace product, or an older"
+          msg="$msg NodeSpace that does not say which product it is. To replace it, move"
+          msg="$msg /Applications/NodeSpace.app to the Trash, then run the install again."
+          msg="$msg Your databases stay on this Mac."
+          echo "$msg" >&2
+          exit 1
+        fi
+      SH
+    end
+  end
+
+  # The same check before an uninstall, which is how a reinstall or upgrade
+  # sees the app: Homebrew moves the old app aside before the new version's
+  # preflight_steps run.
+  uninstall_preflight_steps do
+    if_path_exists "NodeSpace.app", base: :appdir do
+      run "/bin/sh", args: ["-c", <<~SH, "sh", "{{appdir}}/NodeSpace.app"], print_stderr: false
+        product=$(/usr/bin/plutil -extract NodeSpaceProduct raw -o - "$1/Contents/Info.plist" 2>/dev/null)
+        if [ "$product" != community ]; then
+          msg="The NodeSpace app on this Mac is a different NodeSpace product, or an older"
+          msg="$msg NodeSpace that does not say which product it is. To replace it, move"
+          msg="$msg /Applications/NodeSpace.app to the Trash, then run the install again."
+          msg="$msg Your databases stay on this Mac."
+          echo "$msg" >&2
+          exit 1
+        fi
+      SH
+    end
+  end
+
+  # Neither `~/.nodespace/database` nor `~/.nodespace/models` is listed
+  # here: a zap never deletes the user's databases, and models can hold
+  # 100GB+ of downloaded weights the user may expect to survive an
+  # uninstall/reinstall cycle.
   zap trash: [
     "~/.nodespace/bin",
     "~/.nodespace/logs",
-    "~/.nodespace/database",
-    "~/Library/LaunchAgents/app.nodespace.daemon.plist",
     "~/Library/LaunchAgents/app.nodespace.daemon.dev.plist",
+    "~/Library/LaunchAgents/app.nodespace.daemon.plist",
   ]
 end
