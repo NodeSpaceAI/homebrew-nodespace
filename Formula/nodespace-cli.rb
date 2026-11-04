@@ -7,7 +7,7 @@ class NodespaceCli < Formula
   # scripts/update-homebrew-cask.ts documents for the sibling cask.
   # `brew audit --strict` flags this as "redundant with version scanned
   # from URL"; that's a known, accepted trade-off, not an oversight.
-  version "0.3.9"
+  version "0.3.11"
   # nodespace-core's actual LICENSE file is FSL-1.1-Apache-2.0 (Functional
   # Source License), which has no SPDX identifier -- `license
   # :cannot_represent` is Homebrew's documented escape hatch for exactly
@@ -44,17 +44,13 @@ class NodespaceCli < Formula
   # Ships prebuilt binaries from nodespace-core's GitHub Releases, same as
   # the cask -- there's no source build here, just like the cask's .dmg.
   #
-  # v0.3.9 has no macOS Intel build (see the on_intel odie below). NOTE:
-  # the release's own SHA256SUMS file lists checksums for
-  # nodespace-x86_64-apple-darwin / nodespaced-x86_64-apple-darwin even
-  # though neither is an actual uploaded release asset -- verified against
-  # `gh release view v0.3.9 --json assets`, not just SHA256SUMS. Every
+  # v0.3.11 has no macOS Intel build (see the on_intel odie below). Every
   # digest below was computed locally from bytes actually downloaded from
-  # the release, never copied from SHA256SUMS.
+  # the release.
   on_macos do
     on_arm do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-aarch64-apple-darwin"
-      sha256 "9b5f5c37659be75a89486e4ec06c8b5fc9cb91b68b6617f380fe288ff024f753"
+      sha256 "1f52a5c7e09e45fe6de9b50a6013f8dd61b9c66f37c236d23bf7bb0da161d6ec"
     end
     on_intel do
       odie "nodespace-cli has no macOS Intel build in v#{release_version}. " \
@@ -66,11 +62,11 @@ class NodespaceCli < Formula
   on_linux do
     on_arm do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-aarch64-unknown-linux-gnu"
-      sha256 "24f55ca29aa24c8d1154b1ba55643afd360443944bc698dd29ea0c1392b7d57f"
+      sha256 "3addf49b66f766e65457b5b2b5296d37d89fb7279c23815603052a1db1bf96c3"
     end
     on_intel do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-x86_64-unknown-linux-gnu"
-      sha256 "0da308b62081a5a9c83a61f5a5969e263ebbe38c7f645a25f3ca82791dc2c0bb"
+      sha256 "8300b3612aaf8199c6338990d69256ebdaa630291cbc817badca67ba22470d13"
     end
   end
 
@@ -106,17 +102,17 @@ class NodespaceCli < Formula
     on_macos do
       on_arm do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-aarch64-apple-darwin"
-        sha256 "016569cf185766ef5dfba57b78d2bccdee05822c867b7a97d152ecb6dbd621fd"
+        sha256 "8f5a5327ffa678329d51a22287df109510916f143a98fa79966eb717cb1dc65e"
       end
     end
     on_linux do
       on_arm do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-aarch64-unknown-linux-gnu"
-        sha256 "9dc90d9c52bae3e5507dc91741c1073ca5b49387c40d7d4858fa7f0464e33753"
+        sha256 "afdb8018915f6e2ddadbc67a3c68bd3b955c01beedad5074cd24c4fcd285db42"
       end
       on_intel do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-x86_64-unknown-linux-gnu"
-        sha256 "4a9c083266b16d265d73929e53240a6d1f71bb10061abcbc4761ff7133e29c5a"
+        sha256 "5ead49c0df2f8ed2735d75150ae0340ba571fc05813298cb5adb903cb823669c"
       end
     end
   end
@@ -150,15 +146,15 @@ class NodespaceCli < Formula
 
   service do
     run [opt_bin/"nodespaced"]
-    # `keep_alive false` is a no-op, not "don't restart" -- Homebrew's
-    # `keep_alive?` is only true when this is explicitly set truthy, and
-    # false/omitted both leave it false either way. `true` here is what
-    # actually gets launchd/systemd to relaunch nodespaced if it crashes,
-    # which is the whole point of `brew services start` over just running
-    # the binary directly (see the caveats above). `brew services stop`
-    # still works normally -- it unloads the service definition rather
-    # than fighting KeepAlive.
-    keep_alive true
+    # Homebrew's `keep_alive?` is only true when this is set, so omitting it
+    # leaves nothing to relaunch nodespaced after a crash, which is the whole
+    # point of `brew services start` over running the binary directly (see
+    # the caveats above). `successful_exit: false` is the same condition the
+    # launchd plist and systemd unit the installer writes use: relaunch after
+    # a failure, but not after a deliberate clean exit (for example an
+    # unusable databases.toml). `brew services stop` still works normally --
+    # it unloads the service definition rather than fighting KeepAlive.
+    keep_alive successful_exit: false
     log_path var/"log/nodespace/nodespaced.log"
     error_log_path var/"log/nodespace/nodespaced.log"
   end
