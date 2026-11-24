@@ -7,7 +7,7 @@ class NodespaceCli < Formula
   # scripts/update-homebrew-cask.ts documents for the sibling cask.
   # `brew audit --strict` flags this as "redundant with version scanned
   # from URL"; that's a known, accepted trade-off, not an oversight.
-  version "0.3.12"
+  version "0.3.13"
   # nodespace-core's actual LICENSE file is FSL-1.1-Apache-2.0 (Functional
   # Source License), which has no SPDX identifier -- `license
   # :cannot_represent` is Homebrew's documented escape hatch for exactly
@@ -44,13 +44,13 @@ class NodespaceCli < Formula
   # Ships prebuilt binaries from nodespace-core's GitHub Releases, same as
   # the cask -- there's no source build here, just like the cask's .dmg.
   #
-  # v0.3.12 has no macOS Intel build (see the on_intel odie below). Every
+  # v0.3.13 has no macOS Intel build (see the on_intel odie below). Every
   # digest below was computed locally from bytes actually downloaded from
   # the release.
   on_macos do
     on_arm do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-aarch64-apple-darwin"
-      sha256 "1f47c283053e97824f01b8dd9495d4eae3e526ed6de7207b14ce9962f5ec94cf"
+      sha256 "7c40bada9971881b7a8dd04dcc92ab99bd20c8213cbe07a8e6b57e392d44c445"
     end
     on_intel do
       odie "nodespace-cli has no macOS Intel build in v#{release_version}. " \
@@ -62,11 +62,11 @@ class NodespaceCli < Formula
   on_linux do
     on_arm do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-aarch64-unknown-linux-gnu"
-      sha256 "2edb1cde65e19ac5cebdfcfd4a94993541d50e59916af7dae7e34f3c53f58d21"
+      sha256 "1da09bc13cb936be930635404ff0bc0aab2dfba24cd233f2460b1419f9180920"
     end
     on_intel do
       url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespace-x86_64-unknown-linux-gnu"
-      sha256 "2ebe64b5f6f6afff9b5618541175a5bd4cc06de8ec5dab5ada5651bad0b71a08"
+      sha256 "1a7379d33f93ae0cded2300e9f2f649527d02c1adba0d42bb848d10078a51297"
     end
   end
 
@@ -102,17 +102,17 @@ class NodespaceCli < Formula
     on_macos do
       on_arm do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-aarch64-apple-darwin"
-        sha256 "d2156393448f3636912f0bcca92758f84fed5e9723275bf566e921d8e7753558"
+        sha256 "c384d19806e8c5e1619d13b597f916f3fe73c2456ac0ec708374b8724ce050a2"
       end
     end
     on_linux do
       on_arm do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-aarch64-unknown-linux-gnu"
-        sha256 "d111fc29ffb14eb14cda84b9a77ee5e1a2069df8c4f27db9a19722deb6cc9f1f"
+        sha256 "b105d1407351263353d3a9f94eebf7abb49529031704bb120a803ad36bfc200f"
       end
       on_intel do
         url "https://github.com/NodeSpaceAI/nodespace-core/releases/download/v#{release_version}/nodespaced-x86_64-unknown-linux-gnu"
-        sha256 "33f2486e35b46f43345441de69fe718847021eb9e51c5414860b37f9f8433274"
+        sha256 "f864740d15e9d5b23c8affc996a0c48d7d487d2874868f5ee9f5ae815005e670"
       end
     end
   end
